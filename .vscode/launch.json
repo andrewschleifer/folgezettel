@@ -15,7 +15,8 @@
         "--extensionDevelopmentKind=web"
       ],
       "outFiles": ["${workspaceFolder}/dist/web/**/*.js"],
-      "preLaunchTask": "${defaultBuildTask}"
+      "preLaunchTask": "${defaultBuildTask}",
+      "sourceMaps": true
     },
     {
       "name": "Extension Tests",
