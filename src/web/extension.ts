@@ -29,7 +29,7 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.workspace.workspaceFolders![0].uri,
             newId.basename,
           );
-          await touch(uri.path as MarkdownFilename);
+          await touch(newId.basename as MarkdownFilename);
           await vscode.window.showTextDocument(uri);
         } catch (err) {
           console.error("Error in newTrainOfThought:", err);
@@ -74,7 +74,7 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.workspace.workspaceFolders![0].uri,
             candidate.basename,
           );
-          await touch(uri.path as MarkdownFilename);
+          await touch(candidate.basename as MarkdownFilename);
           await vscode.window.showTextDocument(uri);
         } catch (err) {
           console.error("Error in newSiblingThought:", err);
