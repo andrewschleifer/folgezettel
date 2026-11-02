@@ -8,6 +8,8 @@ import {
   newParsedIdFromPath,
   MarkdownFilename,
   newTheoreticalParsedId,
+  splitLastRun,
+  compareSiblingRuns,
 } from "./pureFolgezettel";
 import { touch } from "./utils";
 
@@ -178,6 +180,84 @@ export function activate(context: vscode.ExtensionContext) {
       },
     );
     context.subscriptions.push(goToParentDisposable);
+
+    async function goToSiblingThought(direction: 1 | -1) {
+      const editor = vscode.window.activeTextEditor;
+      if (!editor) {
+        vscode.window.showErrorMessage("No active editor");
+        console.error("No active editor");
+        return;
+      }
+      const currentFile = newParsedIdFromPath(
+        editor.document.fileName as MarkdownFilename,
+      );
+      const currentRun = splitLastRun(currentFile);
+      if (!currentRun) {
+        vscode.window.showInformationMessage("Not a folgezettel note");
+        return;
+      }
+
+      const files = await vscode.workspace.findFiles("*.md");
+      const siblings = files
+        .map((file) => {
+          const parsed = newParsedIdFromPath(file.path as MarkdownFilename);
+          return { file, parsed, lastRun: splitLastRun(parsed) };
+        })
+        .filter(
+          (s) =>
+            s.lastRun !== null &&
+            s.lastRun.stem === currentRun.stem &&
+            s.lastRun.kind === currentRun.kind,
+        )
+        .sort((a, b) => compareSiblingRuns(a.lastRun!.run, b.lastRun!.run));
+
+      const currentIndex = siblings.findIndex(
+        (s) => s.parsed.id === currentFile.id,
+      );
+      if (currentIndex < 0) {
+        vscode.window.showInformationMessage("No sibling thought found");
+        return;
+      }
+      const target =
+        siblings[
+          (currentIndex + direction + siblings.length) % siblings.length
+        ];
+      if (target.parsed.id === currentFile.id) {
+        vscode.window.showInformationMessage("No other sibling thought");
+        return;
+      }
+      await vscode.window.showTextDocument(target.file);
+    }
+
+    const goToEarlierSiblingDisposable = vscode.commands.registerCommand(
+      "vscode-folgezettel.goToEarlierSiblingThought",
+      async () => {
+        try {
+          await goToSiblingThought(-1);
+        } catch (err) {
+          console.error("Error in goToEarlierSiblingThought:", err);
+          vscode.window.showErrorMessage(
+            "Error in goToEarlierSiblingThought: " + err,
+          );
+        }
+      },
+    );
+    context.subscriptions.push(goToEarlierSiblingDisposable);
+
+    const goToLaterSiblingDisposable = vscode.commands.registerCommand(
+      "vscode-folgezettel.goToLaterSiblingThought",
+      async () => {
+        try {
+          await goToSiblingThought(1);
+        } catch (err) {
+          console.error("Error in goToLaterSiblingThought:", err);
+          vscode.window.showErrorMessage(
+            "Error in goToLaterSiblingThought: " + err,
+          );
+        }
+      },
+    );
+    context.subscriptions.push(goToLaterSiblingDisposable);
   } catch (err) {
     console.error("Error during extension activation:", err);
     vscode.window.showErrorMessage("Extension activation error: " + err);

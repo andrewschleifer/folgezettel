@@ -3,6 +3,8 @@ import {
   incId,
   nextTrainIdFromFilenames,
   parentFromCurrent,
+  splitLastRun,
+  compareSiblingRuns,
   MarkdownFilename,
   newTheoreticalParsedId,
 } from "../../pureFolgezettel";
@@ -35,6 +37,48 @@ describe("incId", () => {
       incId(newTheoreticalParsedId("foo")),
       newTheoreticalParsedId("foo"),
     );
+  });
+});
+
+describe("splitLastRun", () => {
+  it("splits numeric last run", () => {
+    assert.deepStrictEqual(splitLastRun(newTheoreticalParsedId("1.2")), {
+      stem: "1.",
+      run: "2",
+      kind: "num",
+    });
+    assert.deepStrictEqual(splitLastRun(newTheoreticalParsedId("2.1a4b1")), {
+      stem: "2.1a4b",
+      run: "1",
+      kind: "num",
+    });
+  });
+
+  it("splits alpha last run", () => {
+    assert.deepStrictEqual(splitLastRun(newTheoreticalParsedId("2.1aa")), {
+      stem: "2.1",
+      run: "aa",
+      kind: "alpha",
+    });
+  });
+
+  it("returns null when no dot", () => {
+    assert.strictEqual(splitLastRun(newTheoreticalParsedId("foo")), null);
+  });
+});
+
+describe("compareSiblingRuns", () => {
+  it("orders numeric runs as integers", () => {
+    assert.ok(compareSiblingRuns("9", "10") < 0);
+    assert.ok(compareSiblingRuns("10", "2") > 0);
+    assert.strictEqual(compareSiblingRuns("3", "3"), 0);
+  });
+
+  it("orders alpha runs in Excel order", () => {
+    assert.ok(compareSiblingRuns("z", "aa") < 0);
+    assert.ok(compareSiblingRuns("a", "b") < 0);
+    assert.ok(compareSiblingRuns("ab", "aa") > 0);
+    assert.strictEqual(compareSiblingRuns("aa", "aa"), 0);
   });
 });
 

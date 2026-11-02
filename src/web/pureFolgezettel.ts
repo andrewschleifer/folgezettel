@@ -113,6 +113,53 @@ export function incId(originalId: TheoreticalParsedId): TheoreticalParsedId {
   return originalId;
 }
 
+export interface LastRun {
+  stem: string;
+  run: string;
+  kind: "num" | "alpha";
+}
+
+/**
+ * Split an id into everything before its final run of digits or letters and
+ * the run itself, e.g. "2.1a4b1" -> { stem: "2.1a4b", run: "1", kind: "num" }.
+ * Returns null for ids without a dot or without a trailing run.
+ */
+export function splitLastRun(id: TheoreticalParsedId): LastRun | null {
+  const token = id.id;
+
+  const lastDot = token.lastIndexOf(".");
+  if (lastDot < 0) {
+    return null;
+  }
+
+  const prefix = token.slice(0, lastDot + 1); // include the dot
+  const tail = token.slice(lastDot + 1);
+
+  const m = tail.match(/^(.*?)([A-Za-z]+|\d+)$/);
+  if (!m) {
+    return null;
+  }
+  return {
+    stem: prefix + m[1],
+    run: m[2],
+    kind: /^\d+$/.test(m[2]) ? "num" : "alpha",
+  };
+}
+
+/**
+ * Order sibling runs of the same kind: numeric runs compare as integers,
+ * alpha runs in Excel order (a < ... < z < aa < ab ...).
+ */
+export function compareSiblingRuns(a: string, b: string): number {
+  if (/^\d+$/.test(a) && /^\d+$/.test(b)) {
+    return parseInt(a, 10) - parseInt(b, 10);
+  }
+  if (a.length !== b.length) {
+    return a.length - b.length;
+  }
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
 export function nextTrainIdFromFilenames(
   filenames: MarkdownFilename[],
 ): number {

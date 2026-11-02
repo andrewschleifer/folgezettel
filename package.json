@@ -45,6 +45,18 @@
         "title": "Go To Parent Thought",
         "category": "Folgezettel",
         "when": "editorLangId == markdown"
+      },
+      {
+        "command": "vscode-folgezettel.goToEarlierSiblingThought",
+        "title": "Go To Earlier Sibling Thought",
+        "category": "Folgezettel",
+        "when": "editorLangId == markdown"
+      },
+      {
+        "command": "vscode-folgezettel.goToLaterSiblingThought",
+        "title": "Go To Later Sibling Thought",
+        "category": "Folgezettel",
+        "when": "editorLangId == markdown"
       }
     ],
     "menus": {
