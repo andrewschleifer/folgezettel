@@ -46,7 +46,16 @@
         "category": "Folgezettel",
         "when": "editorLangId == markdown"
       }
-    ]
+    ],
+    "menus": {
+      "file/newFile": [
+        {
+          "command": "vscode-folgezettel.newTrainOfThought",
+          "group": "Folgezettel",
+          "when": "true"
+        }
+      ]
+    }
   },
   "capabilities": {
     "untrustedWorkspaces": {
